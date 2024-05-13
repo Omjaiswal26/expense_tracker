@@ -1,0 +1,266 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Expense Tracker</title>
+
+<link rel="stylesheet" type="text/css" href = "{% static 'css/expense_style.css' %}">
+<!-- Latest compiled and minified CSS -->
+<link
+    rel="stylesheet"
+    href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
+/>
+
+<!-- jQuery library -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+<!-- Latest compiled JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+<script src = "{% static 'js/expense_script.js' %}"></script>
+</head>
+<body background="{% static 'backg.jpg' %}">
+
+<div style="display:block; text-align: center; color:rgb(34, 6, 6);">
+    <h1><b>Expense Tracker</b></h1>
+</div>
+
+<div class="container" style="background-color: white; border-radius:15px;">
+    <div class="card" style="
+    display: flex;
+    border: solid rgb(101, 101, 101); border-radius: 5px;
+    height: 250px;
+    margin-top:1vw;
+    margin-bottom:1vw;">
+    <canvas id="expenseChart" style="width: auto;"></canvas>
+    <canvas id="barChart" style="height: 400px; width: 800px;"></canvas>
+</div>
+</div>
+<br>
+<div class="container" style="background-color: white; margin-bottom:2vw; border-radius:15px;">
+    <br>
+    <div>
+    <button
+        type="button"
+        class="btn btn-primary"
+        data-toggle="modal"
+        data-target="#AddModal"
+        style="right:0px;"
+    >
+    Add Expense
+    </button>
+    <div style="display: inline-block; margin-left:65vw; font-size:15px;"><b>{{total_expense}}</b></div>
+</div>
+    <div
+class="modal fade"
+id="AddModal"
+tabindex="-1"
+role="dialog"
+aria-labelledby="exampleModalLabel"
+aria-hidden="true"
+>
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Add Expense</h5>
+        <button
+        type="button"
+        class="close"
+        data-dismiss="modal"
+        aria-label="Close"
+        >
+        <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+    <form method="post" action="{% url 'add_expense' %}">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="date" class="form-label">Date</label>
+            <input type="date" class="form-control" id="date-id" name="date_name">
+        </div>
+        <div class="mb-3">
+            <label for="amount" class="form-label">Amount</label>
+            <input type="number" class="form-control" id="amount-id" name="amount_name">
+        </div>
+        <div class="mb-3">
+            <label for="type" class="form-label">Type</label>
+            <select name="type_name" class="form-control" id="type-id">
+                <option value="Food">Food</option>
+                <option value="Transport">Transport</option>
+                <option value="Social Life">Social Life</option>
+                <option value="Pets">Pets</option>
+                <option value="Household">Household</option>
+                <option value="Gift">Gift</option>
+                <option value="Education">Education</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="Name" class="form-label">Name</label>
+            <input type="text" class="form-control" name="name">
+        </div>
+        <div class="mb-3">
+            <label for="Description" class="form-label">Description</label>
+            <input type="text" class="form-control" id="desc-id" name="desc_name">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block"> Add Expense </button>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button
+        type="button"
+        class="btn btn-secondary"
+        data-dismiss="modal"
+        >
+        Close
+        </button>
+    </div>
+    </div>
+</div>
+</div>
+
+<br>
+<span>
+<table class="table table-bordered">
+    <thead class="thead-light">
+    <tr>
+        <th style="width: 90px;" scope="col">Type</th>
+        <th style="width: 120px;" scope="col">Name</th>
+        <th scope="col">Description</th>
+        <th style="width: 120px;" scope="col">Amount</th>
+        <th style="width: 85px;" scope="col"></th>
+    </tr>
+    </thead>
+</table>
+{% regroup all_expenses by expense_date as grouped_objects %}
+
+{% for grouped_object in grouped_objects %}
+    <table class="table table-bordered">
+        <tbody>
+            <tr>
+                <td colspan="3">
+            <b>{{grouped_object.grouper}}</b>
+            {% for date , total_expense in date_wise_expense.items %}
+            {%if date == grouped_object.grouper %}
+            <td colspan="2">
+            <b>{{total_expense}}</b>
+            </td>
+            {% endif %}
+            {% endfor %}
+        </td>
+        </tr>
+    <tr>
+
+    {% for expense in grouped_object.list %}
+        <!-- <td>{{expense.expense_id}}</td> -->
+        <td style="width: 90px;">{{expense.expense_type}}</td>
+        <td style="width: 120px;">{{expense.expense_name}}</td>
+        <td>{{expense.expense_desc}}</td>
+        <td style="width: 120px;">{{expense.expense_amount}}</td>
+        <td style="width:80px;">
+            <div>
+            <a class="btn btn-danger" href = "{% url 'delete_expense' expense.expense_id%}">Delete</a>
+
+</div>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    {% endfor %}
+</table>
+</span>
+
+<!-- Button trigger modal -->
+
+
+    <!-- Modal -->
+</div>
+<script>
+    var expense_labels = JSON.parse("{{ expense_labels|escapejs }}");
+var expense_amounts = JSON.parse("{{ expense_amounts|escapejs }}");
+
+// Create data object for the pie chart
+
+
+var expenseData = {
+    labels: JSON.parse("{{ expense_labels|escapejs }}"),
+    datasets: [{
+        data: JSON.parse("{{ expense_amounts|escapejs }}"),
+        backgroundColor: JSON.parse("{{ expense_colours|escapejs }}"),  // Use the colors provided by Django view
+        borderWidth: 1
+    }]
+};
+
+// Get the canvas element
+var ctx = document.getElementById('expenseChart').getContext('2d');
+
+// Create the pie chart
+var myPieChart = new Chart(ctx, {
+    type: 'pie',
+    data: expenseData,
+    options: {
+        responsive: true,
+        legend: {
+            display: true,
+            position: 'left'
+        },
+    }
+});
+
+var date_wise_expense = JSON.parse("{{ date_wise_expense_json|escapejs }}");
+
+// Extract dates and expenses from the data
+var dates = Object.keys(date_wise_expense);
+var expenses = Object.values(date_wise_expense);
+
+// Create data object for the bar chart
+var barExpenseData = {
+    labels: dates,
+    datasets: [{
+        label: 'Total Expense',
+        data: expenses,
+        backgroundColor: 'rgba(75, 192, 192, 0.7)', // Bar color
+        borderWidth: 1
+    }]
+};
+
+// Get the canvas element
+var ctx = document.getElementById('barChart').getContext('2d');
+
+// Create the bar chart
+var myBarChart = new Chart(ctx, {
+    type: 'bar',
+    data: barExpenseData,
+    options: {
+        responsive: true,
+        legend: {
+            display: false // Hide the legend
+        },
+        scales: {
+            xAxes: [{
+                scaleLabel: {
+                    display: true,
+                    labelString: 'Date'
+                }
+            }],
+            yAxes: [{
+                scaleLabel: {
+                    display: true,
+                    labelString: 'Total Expense'
+                },
+                ticks: {
+                    beginAtZero: true // Start y-axis from zero
+                }
+            }]
+        }
+    }
+});
+</script>
+</body>
+</html>
